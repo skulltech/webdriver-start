@@ -106,6 +106,10 @@ def start_webdriver(driver_name, user_agent=None, profile_path=None):
         if profile_path:
             opt.add_argument('user-data-dir={profile_path}'.format(profile_path=profile_path))
 
+        opt.add_argument("--disable-notifications")
+        prefs = {"profile.default_content_setting_values.notifications" : 2}
+        opt.add_experimental_option("prefs",prefs)
+
         chromedriver_path = find_binary_file('chromedriver')
         driver = webdriver.Chrome(chromedriver_path, chrome_options=opt)
 
