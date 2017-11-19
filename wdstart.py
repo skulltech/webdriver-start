@@ -5,10 +5,12 @@ Standard and reliable module for starting up Selenium Webdriver, with custom use
 import os
 import subprocess
 import sys
-import urllib
+from urllib.request import urlopen
+from urllib.error import URLError
 
 from selenium import webdriver
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.chrome.options import Options
 
 
 def find_file(name, path):
@@ -76,8 +78,8 @@ def start_webdriver(driver_name, user_agent=None, profile_path=None):
     if driver_name == 'htmlunit':
         while True:
             try:
-                urllib.request.urlopen('http://localhost:4444/wd/hub/status')
-            except urllib.error.URLError:
+                urlopen('http://localhost:4444/wd/hub/status')
+            except URLError:
                 start_selenium_server()
             else:
                 break
@@ -100,15 +102,15 @@ def start_webdriver(driver_name, user_agent=None, profile_path=None):
         driver = webdriver.Firefox(fp)
 
     if driver_name == 'chrome':
-        opt = webdriver.chrome.options.Options()
+        opt = Options()
         if user_agent:
             opt.add_argument('user-agent={user_agent}'.format(user_agent=user_agent))
         if profile_path:
             opt.add_argument('user-data-dir={profile_path}'.format(profile_path=profile_path))
 
         opt.add_argument("--disable-notifications")
-        prefs = {"profile.default_content_setting_values.notifications" : 2}
-        opt.add_experimental_option("prefs",prefs)
+        prefs = {"profile.default_content_setting_values.notifications": 2}
+        opt.add_experimental_option("prefs", prefs)
 
         chromedriver_path = find_binary_file('chromedriver')
         driver = webdriver.Chrome(chromedriver_path, chrome_options=opt)
