@@ -8,7 +8,7 @@ import sys
 from urllib.request import urlopen
 from urllib.error import URLError
 
-from selenium import webdriver
+from selenium import webdriver as WD
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.chrome.options import Options
 
@@ -60,7 +60,7 @@ def start_selenium_server():
     subprocess.Popen(cmd, creationflags=subprocess.CREATE_NEW_CONSOLE)
 
 
-def start_webdriver(driver_name, user_agent=None, profile_path=None):
+def webdriver(driver_name, user_agent=None, profile_path=None):
     """Starts and returns a Selenium Webdriver.
 
     Args:
@@ -86,20 +86,20 @@ def start_webdriver(driver_name, user_agent=None, profile_path=None):
 
         if user_agent:
             pass
-        dcap = webdriver.DesiredCapabilities.HTMLUNITWITHJS
-        driver = webdriver.Remote(command_executor="http://localhost:4444/wd/hub",
+        dcap = WD.DesiredCapabilities.HTMLUNITWITHJS
+        driver = WD.Remote(command_executor="http://localhost:4444/wd/hub",
                                   desired_capabilities=dcap)
 
     if driver_name == 'firefox':
         if profile_path:
-            fp = webdriver.FirefoxProfile(profile_path)
+            fp = WD.FirefoxProfile(profile_path)
         else:
-            fp = webdriver.FirefoxProfile()
+            fp = WD.FirefoxProfile()
 
         if user_agent:
             fp.set_preference('general.useragent.override', user_agent)
 
-        driver = webdriver.Firefox(fp)
+        driver = WD.Firefox(fp)
 
     if driver_name == 'chrome':
         opt = Options()
@@ -113,7 +113,7 @@ def start_webdriver(driver_name, user_agent=None, profile_path=None):
         opt.add_experimental_option("prefs", prefs)
 
         chromedriver_path = find_binary_file('chromedriver')
-        driver = webdriver.Chrome(chromedriver_path, chrome_options=opt)
+        driver = WD.Chrome(chromedriver_path, chrome_options=opt)
 
     if driver_name == 'phantomjs':
         dcap = DesiredCapabilities.PHANTOMJS
@@ -121,6 +121,6 @@ def start_webdriver(driver_name, user_agent=None, profile_path=None):
             dcap["phantomjs.page.settings.userAgent"] = user_agent
 
         phantomjs_path = find_binary_file('phantomjs')
-        driver = webdriver.PhantomJS(phantomjs_path, desired_capabilities=dcap)
+        driver = WD.PhantomJS(phantomjs_path, desired_capabilities=dcap)
 
     return driver
