@@ -13,6 +13,7 @@ from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.chrome.options import Options
 
 
+
 def find_file(name, path):
     """Returns the path of a file in a directory"""
 
@@ -35,6 +36,7 @@ def find_selenium_server():
 
 def find_binary_file(name):
     """Returns the path of binary file in a given directory"""
+
     binary_path = None
 
     if sys.platform.startswith('win'):
@@ -45,7 +47,7 @@ def find_binary_file(name):
     if binary_path:
         return binary_path
     else:
-        print('{name} not found in the working directory.'.format(name=name))
+        print('[!] {name} not found in the working directory.'.format(name=name))
 
 
 def start_selenium_server():
@@ -53,18 +55,18 @@ def start_selenium_server():
 
     seleniumserver_path = find_selenium_server()
     if not seleniumserver_path:
-        print('The file "standalone-server-standalone-x.x.x.jar" not found.')
+        print('[!] The file "standalone-server-standalone-x.x.x.jar" not found.')
         return
 
     cmd = ['java', '-jar', seleniumserver_path]
-    subprocess.Popen(cmd, creationflags=subprocess.CREATE_NEW_CONSOLE)
+    subprocess.Popen(cmd)
 
 
-def webdriver(driver_name, user_agent=None, profile_path=None):
+def webdriver(name, user_agent=None, profile_path=None):
     """Starts and returns a Selenium Webdriver.
 
     Args:
-        driver_name (str): Name of the webdriver to be started [Chrome, Firefox, PhantomJs, HTMLUnit].
+        name (str): Name of the webdriver to be started [Chrome, Firefox, PhantomJs, HTMLUnit].
         user_agent (str): The user_agent string the webdriver should use.
         profile_path (str): The path of the browser profile [only for Firefox and Chrome].
 
@@ -72,10 +74,10 @@ def webdriver(driver_name, user_agent=None, profile_path=None):
         selenium.webdriver: A Selenium Webdriver according to the Args.
     """
 
-    driver_name = driver_name.lower()
+    name = name.lower()
     driver = None
 
-    if driver_name == 'htmlunit':
+    if name == 'htmlunit':
         while True:
             try:
                 urlopen('http://localhost:4444/wd/hub/status')
@@ -90,7 +92,7 @@ def webdriver(driver_name, user_agent=None, profile_path=None):
         driver = WD.Remote(command_executor="http://localhost:4444/wd/hub",
                                   desired_capabilities=dcap)
 
-    if driver_name == 'firefox':
+    if name == 'firefox':
         if profile_path:
             fp = WD.FirefoxProfile(profile_path)
         else:
@@ -101,7 +103,7 @@ def webdriver(driver_name, user_agent=None, profile_path=None):
 
         driver = WD.Firefox(fp)
 
-    if driver_name == 'chrome':
+    if name == 'chrome':
         opt = Options()
         if user_agent:
             opt.add_argument('user-agent={user_agent}'.format(user_agent=user_agent))
@@ -113,14 +115,20 @@ def webdriver(driver_name, user_agent=None, profile_path=None):
         opt.add_experimental_option("prefs", prefs)
 
         chromedriver_path = find_binary_file('chromedriver')
-        driver = WD.Chrome(chromedriver_path, chrome_options=opt)
+        if chromedriver_path:
+            driver = WD.Chrome(chromedriver_path, chrome_options=opt)
+        else:
+            driver = WD.Chrome(chrome_options=opt)
 
-    if driver_name == 'phantomjs':
+    if name == 'phantomjs':
         dcap = DesiredCapabilities.PHANTOMJS
         if user_agent:
             dcap["phantomjs.page.settings.userAgent"] = user_agent
 
         phantomjs_path = find_binary_file('phantomjs')
-        driver = WD.PhantomJS(phantomjs_path, desired_capabilities=dcap)
+        if phantomjs_path:
+            driver = WD.PhantomJS(phantomjs_path, desired_capabilities=dcap)
+        else:
+            driver = WD.PhantomJS(desired_capabilities=dcap)
 
     return driver
