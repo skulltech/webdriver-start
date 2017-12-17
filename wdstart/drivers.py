@@ -8,9 +8,9 @@ from selenium.webdriver.chrome.options import Options
 
 
 class BaseDriver:
-	def __init__(self, name, is_incognito=False, user_agent=None, profile_path=None):
+	def __init__(self, is_incognito=False, user_agent=None, profile_path=None):
 		self.driver = None
-		self.name = name
+		self.name = None
 		self.is_incognito = is_incognito
 		self.user_agent = user_agent
 		self.profile_path = profile_path
@@ -20,27 +20,28 @@ class BaseDriver:
 
 
 class ChromeDriver(BaseDriver):
-	def __start(self):
+	def __start(self, name, is_incognito=False, user_agent=None, profile_path=None):
         opt = Options()
 
-        if self.user_agent:
-            opt.add_argument('user-agent={}'.format(self.user_agent))
-        if self.profile_path:
-            opt.add_argument('user-data-dir={}'.format(self.profile_path))
+        if user_agent:
+            opt.add_argument('user-agent={}'.format(user_agent))
+        if profile_path:
+            opt.add_argument('user-data-dir={}'.format(profile_path))
 
-        opt.add_argument("--disable-notifications")
-        prefs = {"profile.default_content_setting_values.notifications": 2}
-        opt.add_experimental_option("prefs", prefs)
+        opt.add_argument('--disable-notifications')
+        prefs = {'profile.default_content_setting_values.notifications': 2}
+        opt.add_experimental_option('prefs', prefs)
 
-        self.driver_path = find_binary_file('chromedriver')
-        if self.driver_path:
-            self.driver = WD.Chrome(chromedriver_path, chrome_options=opt)
+        driver_path = find_binary_file('chromedriver')
+        self.driver_path = driver_path or '$PATH'
+        if driver_path:
+            self.driver = WD.Chrome(driver_path, chrome_options=opt)
         else:
             self.driver = WD.Chrome(chrome_options=opt)
 
 
 class FirefoxDriver(BaseDriver):
-	def __start(self):
+    def __start(self, name, is_incognito=False, user_agent=None, profile_path=None):
         if self.profile_path:
             fp = WD.FirefoxProfile(self.profile_path)
         else:
@@ -65,8 +66,7 @@ class HTMLUnitDriver(BaseDriver):
         if user_agent:
             pass
         dcap = WD.DesiredCapabilities.HTMLUNITWITHJS
-        driver = WD.Remote(command_executor="http://localhost:4444/wd/hub",
-                                  desired_capabilities=dcap)
+        driver = WD.Remote(command_executor="http://localhost:4444/wd/hub", desired_capabilities=dcap)
 
 
 class PhantomJSDriver(BaseDriver):
