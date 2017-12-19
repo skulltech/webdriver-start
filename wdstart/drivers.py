@@ -8,19 +8,23 @@ from selenium.webdriver.chrome.options import Options
 
 
 class BaseDriver:
-	def __init__(self, is_incognito=False, user_agent=None, profile_path=None):
+	def __init__(self, incognito=False, user_agent=None, profile_path=None):
 		self.driver = None
 		self.name = None
-		self.is_incognito = is_incognito
+		self.incognito = incognito
 		self.user_agent = user_agent
 		self.profile_path = profile_path
+
+    @property
+    def user_agent(self):
+        return self.driver.execute_script("return navigator.userAgent")
 
 	def __start(self):
 		pass
 
 
 class ChromeDriver(BaseDriver):
-	def __start(self, name, is_incognito=False, user_agent=None, profile_path=None):
+	def __start(self, name, incognito=False, user_agent=None, profile_path=None):
         opt = Options()
 
         if user_agent:
@@ -28,6 +32,7 @@ class ChromeDriver(BaseDriver):
         if profile_path:
             opt.add_argument('user-data-dir={}'.format(profile_path))
 
+        # Some enhancements to the webdriver to be opened.
         opt.add_argument('--disable-notifications')
         prefs = {'profile.default_content_setting_values.notifications': 2}
         opt.add_experimental_option('prefs', prefs)
@@ -41,7 +46,7 @@ class ChromeDriver(BaseDriver):
 
 
 class FirefoxDriver(BaseDriver):
-    def __start(self, name, is_incognito=False, user_agent=None, profile_path=None):
+    def __start(self, name, incognito=False, user_agent=None, profile_path=None):
         if self.profile_path:
             fp = WD.FirefoxProfile(self.profile_path)
         else:
