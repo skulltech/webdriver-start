@@ -18,7 +18,7 @@ class BaseDriver:
     @property
     def user_agent(self):
         try:
-            agent = self.driver.execute_script("return navigator.userAgent")
+            agent = self.driver.execute_script('return navigator.userAgent')
         except WebDriverException:
             self.driver.get('http://www.google.com')
             agent = self.driver.execute_script('return navigator.userAgent')
@@ -43,10 +43,9 @@ class ChromeDriver(BaseDriver):
         prefs = {'profile.default_content_setting_values.notifications': 2}
         opt.add_experimental_option('prefs', prefs)
 
-        driver_path = helper.find_binary_file('chromedriver')
-        self.driver_path = driver_path or '$PATH'
-        if driver_path:
-            self.driver = WD.Chrome(driver_path, chrome_options=opt)
+        chromedriver_path = helper.find_binary_file('chromedriver')
+        if chromedriver_path:
+            self.driver = WD.Chrome(chromedriver_path, chrome_options=opt)
         else:
             self.driver = WD.Chrome(chrome_options=opt)
 
@@ -62,7 +61,11 @@ class FirefoxDriver(BaseDriver):
         if self.agent:
             fp.set_preference('general.useragent.override', self.agent)
 
-        self.driver = WD.Firefox(fp)
+        geckodriver_path = helper.find_binary_file('geckodriver')
+        if geckodriver_path:
+            self.driver = WD.Firefox(firefox_profile=fp, executable_path=geckodriver_path)
+        else:
+            self.driver = WD.Firefox(firefox_profile=fp)
 
 
 class HTMLUnitDriver(BaseDriver):
