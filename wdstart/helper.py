@@ -3,13 +3,30 @@ import subprocess
 import sys
 
 
-
-def find_file(name, path):
+def find_file(name, path=os.environ['PATH'], deep=False, partial=False):
     """Returns the path of a file in a directory"""
 
-    for root, dirs, files in os.walk(path):
-        if name in files:
-            return os.path.join(root, name)
+    paths = path.split(os.pathsep) if type(path) is str else path
+    for p in paths:
+        ret = __find_file(name, p, deep, partial)
+        if ret:
+            return ret
+
+
+def __find_file(name, path, deep=False, partial=False):
+    if deep:
+        for root, dirs, files in os.walk(path):
+            if partial:
+                for file in files:
+                    if name in file:
+                        return os.path.join(root, file)
+            else:
+                if name in files:
+                    return os.path.join(root, name)
+    else:
+        f = os.path.join(path, name)
+        if os.path.isfile(f):
+            return f
 
 
 def find_selenium_server():
@@ -24,18 +41,15 @@ def find_selenium_server():
                 pass
 
 
-def find_binary_file(name):
+def find_executable(name):
     """Returns the path of binary file in a given directory"""
 
-    binary_path = None
+    if sys.platform.startswith('win') or os.name.startswith('os2'):
+        name = name + '.exe'
+    executable_path = find_file(name=name, path=os.getcwd())
 
-    if sys.platform.startswith('win'):
-        binary_path = find_file(name=name + '.exe', path=os.getcwd())
-    elif sys.platform.startswith('darwin') or sys.platform.startswith('linux'):
-        binary_path = find_file(name=name, path=os.getcwd())
-
-    if binary_path:
-        return binary_path
+    if executable_path:
+        return executable_path
     else:
         print('[!] {name} not found in the working directory.'.format(name=name))
 
