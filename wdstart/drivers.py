@@ -4,6 +4,7 @@ from urllib.error import URLError
 from selenium import webdriver as WD
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import WebDriverException
 
 
 
@@ -17,7 +18,13 @@ class BaseDriver:
 
     @property
     def user_agent(self):
-        return self.driver.execute_script("return navigator.userAgent")
+        agent = ''
+        try:
+            agent = self.driver.execute_script("return navigator.userAgent")
+        except WebDriverException:
+            self.driver.get('http://www.google.com')
+            agent = self.driver.execute_script('return navigator.userAgent') 
+        return agent
 
 	def __start(self):
 		pass
@@ -68,9 +75,10 @@ class HTMLUnitDriver(BaseDriver):
             else:
                 break
 
-        if user_agent:
-            pass
         dcap = WD.DesiredCapabilities.HTMLUNITWITHJS
+        if self.user_agent:
+            dcap['version'] = self.user_agent
+
         driver = WD.Remote(command_executor="http://localhost:4444/wd/hub", desired_capabilities=dcap)
 
 
