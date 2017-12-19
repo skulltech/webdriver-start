@@ -43,7 +43,7 @@ class ChromeDriver(BaseDriver):
         prefs = {'profile.default_content_setting_values.notifications': 2}
         opt.add_experimental_option('prefs', prefs)
 
-        chromedriver_path = helper.find_binary_file('chromedriver')
+        chromedriver_path = helper.find_executable('chromedriver')
         if chromedriver_path:
             self.driver = WD.Chrome(chromedriver_path, chrome_options=opt)
         else:
@@ -61,7 +61,7 @@ class FirefoxDriver(BaseDriver):
         if self.agent:
             fp.set_preference('general.useragent.override', self.agent)
 
-        geckodriver_path = helper.find_binary_file('geckodriver')
+        geckodriver_path = helper.find_executable('geckodriver')
         if geckodriver_path:
             self.driver = WD.Firefox(firefox_profile=fp, executable_path=geckodriver_path)
         else:
@@ -98,9 +98,9 @@ class PhantomJSDriver(BaseDriver):
         self.name = 'PhantomJS'
         dcap = WD.DesiredCapabilities.PHANTOMJS
         if self.agent:
-            dcap["phantomjs.page.settings.userAgent"] = self.agent
+            dcap['phantomjs.page.settings.userAgent'] = self.agent
 
-        phantomjs_path = helper.find_binary_file('phantomjs')
+        phantomjs_path = helper.find_executable('phantomjs')
         if phantomjs_path:
             self.driver = WD.PhantomJS(phantomjs_path, desired_capabilities=dcap)
         else:
