@@ -32,13 +32,9 @@ def __find_file(name, path, deep=False, partial=False):
 def find_selenium_server():
     """Returns the path of the 'standalone-server-standalone-x.x.x.jar' file."""
 
-    for root, dirs, files in os.walk(os.getcwd()):
-        for name in files:
-            try:
-                if '-'.join(name.split('-')[:3]) == 'selenium-server-standalone':
-                    return os.path.join(root, name)
-            except IndexError:
-                pass
+    name = 'selenium-server-standalone'
+    jar_path = find_file(name, partial=True) or find_file(name, path=os.getcwd(), deep=True, partial=True)
+    return jar_path
 
 
 def find_executable(name):
@@ -46,12 +42,9 @@ def find_executable(name):
 
     if sys.platform.startswith('win') or os.name.startswith('os2'):
         name = name + '.exe'
-    executable_path = find_file(name=name, path=os.getcwd())
 
-    if executable_path:
-        return executable_path
-    else:
-        print('[!] {name} not found in the working directory.'.format(name=name))
+    executable_path = find_file(name) or find_file(name, path=os.getcwd(), deep=True)
+    return executable_path
 
 
 def start_selenium_server():
