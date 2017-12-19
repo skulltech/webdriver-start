@@ -71,19 +71,26 @@ class FirefoxDriver(BaseDriver):
 class HTMLUnitDriver(BaseDriver):
     def __start(self):
         self.name = 'HTMLUnit'
-        while True:
-            try:
-                urlopen('http://localhost:4444/wd/hub/status')
-            except URLError:
-                helper.start_selenium_server()
-            else:
-                break
+        try:
+            urlopen('http://localhost:4444/wd/hub/status')
+        except URLError:
+            helper.start_selenium_server()
+        self.__wait_for_server()
 
         dcap = WD.DesiredCapabilities.HTMLUNITWITHJS
         if self.user_agent:
             dcap['version'] = self.user_agent
 
         self.driver = WD.Remote(command_executor="http://localhost:4444/wd/hub", desired_capabilities=dcap)
+
+    def __wait_for_server(self):
+        while True:
+            try:
+                urlopen('http://localhost:4444/wd/hub/status')
+            except URLError:
+                time.sleep(0.1)
+            else:
+                break
 
 
 class PhantomJSDriver(BaseDriver):

@@ -4,7 +4,36 @@ import sys
 
 
 def find_file(name, path=os.environ['PATH'], deep=False, partial=False):
-    """Returns the path of a file in a directory"""
+    """
+    Searches for a file and returns its path upon finding it.
+
+    Searches for a file with the given `name` in the list of directories
+    mentioned in `path`. It also supports `deep` search (recursive) and
+    `partial` search (searching for files having filename matching
+    partially with the query) through the respective boolean arguments.
+
+    Parameters
+    ----------
+    name : str
+        The name of the file to search for.
+    path : str or list of str, optional
+        The list of directories to be searched. It can be either a 
+        single str with the directory paths being seperated by
+        `os.pathsep`, or a list of the directory path strings. The 
+        default is the system `PATH`.
+    deep : bool, optional
+        Enables deep-searching, i.e. recursively looking for the file 
+        in the sub-directories of the mentioned directories.
+    partial : bool, optional
+        Whether look for files having filename partially matching with 
+        the query `name`.
+
+    Returns
+    -------
+    str
+        The path of the file. In case of multiple hits, it only return 
+        the first one.
+    """
 
     paths = path.split(os.pathsep) if type(path) is str else path
     for p in paths:
@@ -14,6 +43,37 @@ def find_file(name, path=os.environ['PATH'], deep=False, partial=False):
 
 
 def __find_file(name, path, deep=False, partial=False):
+    """
+    Searches for a file and returns its path upon finding it.
+
+    Searches for a file with the given `name` in the list of directory
+    mentioned in `path`. It also supports `deep` search (recursive) and
+    `partial` search (searching for files having filename matching
+    partially with the query) through the respective boolean arguments.
+    This function is internally called by `find_file` for each of the
+    input directory of that.
+
+
+    Parameters
+    ----------
+    name : str
+        The name of the file to search for.
+    path : str
+        The path of the directory to be searched.
+    deep : bool, optional
+        Enables deep-searching, i.e. recursively looking for the file 
+        in the sub-directories of the mentioned directory.
+    partial : bool, optional
+        Whether look for files having filename partially matching with 
+        the query `name`.
+
+    Returns
+    -------
+    str
+        The path of the file. In case of multiple hits, it only returns 
+        the first one.
+    """
+
     if deep:
         for root, dirs, files in os.walk(path):
             if partial:
@@ -29,16 +89,27 @@ def __find_file(name, path, deep=False, partial=False):
             return f
 
 
-def find_selenium_server():
-    """Returns the path of the 'standalone-server-standalone-x.x.x.jar' file."""
-
-    name = 'selenium-server-standalone'
-    jar_path = find_file(name, partial=True) or find_file(name, path=os.getcwd(), deep=True, partial=True)
-    return jar_path
-
-
 def find_executable(name):
-    """Returns the path of binary file in a given directory"""
+    """
+    Returns the path of an executable file.
+
+    Searches for an executable with the given name, first in the `PATH`, 
+    then in the current directory (recursively). Upon finding the file,
+    returns the full filepath of it.
+
+    Parameters
+    ----------
+    name : str
+        The name of the executable. This is platform-independent so 
+        you don't have to include any platform-specific file extension 
+        (such as `.exe`).
+
+    Returns
+    -------
+    str
+        The path of the executable file. In case of multiple hits, it 
+        only returns the first one.
+    """
 
     if sys.platform.startswith('win') or os.name.startswith('os2'):
         name = name + '.exe'
@@ -48,12 +119,23 @@ def find_executable(name):
 
 
 def start_selenium_server():
-    """Starts the Java Standalone Selenium Server."""
+    """
+    Starts the Java standalone Selenium server.
 
-    seleniumserver_path = find_selenium_server()
+    Finds the Java Selenium server `.jar` file 
+    ('standalone-server-standalone-x.x.x.jar'), and then runs it using 
+    JRE. Requires a JRE to be installed in the system.
+
+    Returns
+    -------
+    bool
+        False if the function couldn't find the `JAR` file. True otherwise.
+    """
+
+    seleniumserver_path = find_file('selenium-server-standalone', partial=True) or find_file(name, path=os.getcwd(), deep=True, partial=True)
     if not seleniumserver_path:
-        print('[!] The file "standalone-server-standalone-x.x.x.jar" not found.')
-        return
+        return False
 
     cmd = ['java', '-jar', seleniumserver_path]
     subprocess.Popen(cmd)
+    return True
