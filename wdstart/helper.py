@@ -1,6 +1,7 @@
 import os
 import subprocess
 import sys
+import time
 
 
 def find_file(name, path=os.environ['PATH'], deep=False, partial=False):
@@ -132,7 +133,7 @@ def start_selenium_server():
         False if the function couldn't find the `JAR` file. True otherwise.
     """
 
-    seleniumserver_path = find_file('selenium-server-standalone', partial=True) or find_file(name, path=os.getcwd(), deep=True, partial=True)
+    seleniumserver_path = find_file('selenium-server-standalone', partial=True) or find_file('selenium-server-standalone', path=os.getcwd(), deep=True, partial=True)
     if not seleniumserver_path:
         return False
 

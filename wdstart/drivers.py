@@ -1,7 +1,7 @@
 from urllib.error import URLError
 from urllib.request import urlopen
 
-import helper
+from . import helper
 from selenium import webdriver as WD
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.chrome.options import Options
@@ -24,11 +24,12 @@ class BaseDriver:
             agent = self.driver.execute_script('return navigator.userAgent')
         return agent
 
-    def __start(self):
-        pass
-
 
 class ChromeDriver(BaseDriver):
+    def __init__(self, incognito=False, user_agent=None, profile_path=None):
+        super().__init__(incognito, user_agent, profile_path)
+        self.__start()
+
     def __start(self):
         self.name = 'Chrome'
         opt = Options()
@@ -51,6 +52,10 @@ class ChromeDriver(BaseDriver):
 
 
 class FirefoxDriver(BaseDriver):
+    def __init__(self, incognito=False, user_agent=None, profile_path=None):
+        super().__init__(incognito, user_agent, profile_path)
+        self.__start()
+
     def __start(self):
         self.name = 'Firefox'
         if self.profile_path:
@@ -69,6 +74,10 @@ class FirefoxDriver(BaseDriver):
 
 
 class HTMLUnitDriver(BaseDriver):
+    def __init__(self, incognito=False, user_agent=None, profile_path=None):
+        super().__init__(incognito, user_agent, profile_path)
+        self.__start()
+        
     def __start(self):
         self.name = 'HTMLUnit'
         try:
@@ -94,11 +103,15 @@ class HTMLUnitDriver(BaseDriver):
 
 
 class PhantomJSDriver(BaseDriver):
+    def __init__(self, incognito=False, user_agent=None, profile_path=None):
+        super().__init__(incognito, user_agent, profile_path)
+        self.__start()
+        
     def __start(self):
         self.name = 'PhantomJS'
         dcap = WD.DesiredCapabilities.PHANTOMJS
         if self.agent:
-            dcap['phantomjs.page.settings.userAgent'] = self.agent
+            dcap['version'] = self.agent
 
         phantomjs_path = helper.find_executable('phantomjs')
         if phantomjs_path:

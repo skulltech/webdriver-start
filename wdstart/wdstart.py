@@ -2,7 +2,7 @@
 Standard and reliable module for starting up Selenium Webdriver, with custom user-agent and custom profiles.
 """
 
-import drivers
+from . import drivers
 
 
 def webdriver(name, incognito=False, user_agent=None, profile_path=None):
