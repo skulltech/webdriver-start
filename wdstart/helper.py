@@ -1,10 +1,8 @@
 import os
-import subprocess
 import sys
-import time
 
 
-def find_file(name, path=os.environ['PATH'], deep=False, partial=False):
+def find_file(name, path=os.getcwd(), deep=False, partial=False):
     """
     Searches for a file and returns its path upon finding it.
 
@@ -115,28 +113,5 @@ def find_executable(name):
     if sys.platform.startswith('win') or os.name.startswith('os2'):
         name = name + '.exe'
 
-    executable_path = find_file(name) or find_file(name, path=os.getcwd(), deep=True)
+    executable_path = find_file(name, deep=True)
     return executable_path
-
-
-def start_selenium_server():
-    """
-    Starts the Java standalone Selenium server.
-
-    Finds the Java Selenium server `.jar` file 
-    ('standalone-server-standalone-x.x.x.jar'), and then runs it using 
-    JRE. Requires a JRE to be installed in the system.
-
-    Returns
-    -------
-    bool
-        False if the function couldn't find the `JAR` file. True otherwise.
-    """
-
-    seleniumserver_path = find_file('selenium-server-standalone', partial=True) or find_file('selenium-server-standalone', path=os.getcwd(), deep=True, partial=True)
-    if not seleniumserver_path:
-        return False
-
-    cmd = ['java', '-jar', seleniumserver_path]
-    subprocess.Popen(cmd)
-    return True

@@ -23,17 +23,18 @@ setup(
     # Versions should comply with PEP440.  For a discussion on single-sourcing
     # the version across setup.py and the project code, see
     # https://packaging.python.org/en/latest/single_source_version.html
-    version='1.0.1',
+    version='1.1.0',
 
     description='Reliable module for starting up Selenium Webdriver, with custom user-agent and custom profile',
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # The project's main homepage.
     url='https://github.com/SkullTech/webdriver-start',
 
     # Author details
     author='Sumit Ghosh',
-    author_email='sumit.ghosh32@gmail.com',
+    author_email='sumit@sumit-ghosh.com',
 
     # Choose your license
     license='MIT',
@@ -58,6 +59,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7'
     ],
 
     # What does your project relate to?
@@ -69,7 +71,7 @@ setup(
 
     # Alternatively, if you want to distribute just a my_module.py, uncomment
     # this:
-      py_modules=["wdstart"],
+    py_modules=['wdstart'],
 
     # List run-time dependencies here.  These will be installed by pip when
     # your project is installed. For an analysis of "install_requires" vs pip's

@@ -1,22 +1,66 @@
-from urllib.error import URLError
-from urllib.request import urlopen
-
 from . import helper
-from selenium import webdriver as WD
+from selenium import webdriver
 from selenium.common.exceptions import WebDriverException
-from selenium.webdriver.chrome.options import Options
+
 
 
 class BaseDriver:
-    def __init__(self, incognito=False, user_agent=None, profile_path=None):
-        self.driver = None
-        self.name = None
-        self.incognito = incognito
+    """Wrapper class around Selenium webdriver 
+
+    Starts a Selenium webdriver according to the parameters provided.
+
+    Parameters
+    ----------
+    headless : bool
+        Whether to start the browser in headless mode.
+    user_agent : str, optional
+        The `user_agent` string the webdriver should use.
+    profile_path : str, optional
+        The path of the browser profile.
+
+    Attributes
+    ----------
+    driver : Selenium webdriver object 
+        Corresponding Selenium webdriver object, for example 
+        `selenium.webdriver.Chrome` in the case of `ChromeDriver`. 
+    headless : bool
+        Whether to start the browser in headless mode, same as the
+        `headless` constructor parameter.
+    agent : str
+        The `user_agent` string the webdriver should use, same as the
+        `user_agent` constructor parameter. 
+    user_agent : str
+        The `user_agent` string the webdriver is actually using. If not same 
+        as the `agent` parameter, there is a possible bug.
+    profile_path : str
+        The path of the browser profile.
+    
+    Methods
+    -------
+    start()
+        Start the Selenium webdriver, populating the `driver` attribute.
+    close()
+        `quit` the webdriver.
+    """
+    def __init__(self, headless=False, user_agent=None, profile_path=None):
+        self._driver = None
+        self.headless = headless
         self.agent = user_agent
         self.profile_path = profile_path
 
+    def start(self):
+        pass
+
+    @property
+    def driver(self):
+        if not self._driver:
+            self.start()
+        return self._driver
+    
     @property
     def user_agent(self):
+        if not self.driver:
+            return self.agent
         try:
             agent = self.driver.execute_script('return navigator.userAgent')
         except WebDriverException:
@@ -24,97 +68,48 @@ class BaseDriver:
             agent = self.driver.execute_script('return navigator.userAgent')
         return agent
 
+    def close(self):
+        if not self.driver:
+            return
+        self.driver.quit()
+
+    def __del__(self):
+        self.close()
+
 
 class ChromeDriver(BaseDriver):
-    def __init__(self, incognito=False, user_agent=None, profile_path=None):
-        super().__init__(incognito, user_agent, profile_path)
-        self.__start()
-
-    def __start(self):
-        self.name = 'Chrome'
-        opt = Options()
-
+    def start(self):
+        options = webdriver.ChromeOptions()
         if self.agent:
-            opt.add_argument('user-agent={}'.format(self.agent))
+            options.add_argument('user-agent={}'.format(self.agent))
         if self.profile_path:
-            opt.add_argument('user-data-dir={}'.format(self.profile_path))
-
-        # Some enhancements to the WebDriver to be opened.
-        opt.add_argument('--disable-notifications')
+            options.add_argument('user-data-dir={}'.format(self.profile_path))
+        if self.headless:
+            options.add_argument('--headless')
+            
+        # Disables notifications in the Chrome instance to be opened.
+        options.add_argument('--disable-notifications')
         prefs = {'profile.default_content_setting_values.notifications': 2}
-        opt.add_experimental_option('prefs', prefs)
+        options.add_experimental_option('prefs', prefs)
 
         chromedriver_path = helper.find_executable('chromedriver')
         if chromedriver_path:
-            self.driver = WD.Chrome(chromedriver_path, chrome_options=opt)
+            self._driver = webdriver.Chrome(chromedriver_path, chrome_options=options)
         else:
-            self.driver = WD.Chrome(chrome_options=opt)
+            self._driver = webdriver.Chrome(chrome_options=options)
 
 
 class FirefoxDriver(BaseDriver):
-    def __init__(self, incognito=False, user_agent=None, profile_path=None):
-        super().__init__(incognito, user_agent, profile_path)
-        self.__start()
-
-    def __start(self):
-        self.name = 'Firefox'
-        if self.profile_path:
-            fp = WD.FirefoxProfile(self.profile_path)
-        else:
-            fp = WD.FirefoxProfile()
-
+    def start(self):
+        profile = webdriver.FirefoxProfile(self.profile_path) if self.profile_path else webdriver.FirefoxProfile()
+        options = webdriver.FirefoxOptions()
         if self.agent:
-            fp.set_preference('general.useragent.override', self.agent)
+            profile.set_preference('general.useragent.override', self.agent)
+        if self.headless:
+            options.add_argument('--headless')
 
         geckodriver_path = helper.find_executable('geckodriver')
         if geckodriver_path:
-            self.driver = WD.Firefox(firefox_profile=fp, executable_path=geckodriver_path)
+            self._driver = webdriver.Firefox(firefox_profile=profile, firefox_options=options, executable_path=geckodriver_path)
         else:
-            self.driver = WD.Firefox(firefox_profile=fp)
-
-
-class HTMLUnitDriver(BaseDriver):
-    def __init__(self, incognito=False, user_agent=None, profile_path=None):
-        super().__init__(incognito, user_agent, profile_path)
-        self.__start()
-        
-    def __start(self):
-        self.name = 'HTMLUnit'
-        try:
-            urlopen('http://localhost:4444/wd/hub/status')
-        except URLError:
-            helper.start_selenium_server()
-        self.__wait_for_server()
-
-        dcap = WD.DesiredCapabilities.HTMLUNITWITHJS
-        if self.user_agent:
-            dcap['version'] = self.user_agent
-
-        self.driver = WD.Remote(command_executor="http://localhost:4444/wd/hub", desired_capabilities=dcap)
-
-    def __wait_for_server(self):
-        while True:
-            try:
-                urlopen('http://localhost:4444/wd/hub/status')
-            except URLError:
-                time.sleep(0.1)
-            else:
-                break
-
-
-class PhantomJSDriver(BaseDriver):
-    def __init__(self, incognito=False, user_agent=None, profile_path=None):
-        super().__init__(incognito, user_agent, profile_path)
-        self.__start()
-        
-    def __start(self):
-        self.name = 'PhantomJS'
-        dcap = WD.DesiredCapabilities.PHANTOMJS
-        if self.agent:
-            dcap['version'] = self.agent
-
-        phantomjs_path = helper.find_executable('phantomjs')
-        if phantomjs_path:
-            self.driver = WD.PhantomJS(phantomjs_path, desired_capabilities=dcap)
-        else:
-            self.driver = WD.PhantomJS(desired_capabilities=dcap)
+            self._driver = webdriver.Firefox(firefox_profile=profile, firefox_options=options)
